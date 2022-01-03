@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Legacy Fabric/Quilt
+ * Copyright (c) 2022 RewovenMC
+ * Copyright (c) 2021 Legacy Fabric
  * Copyright (c) 2019 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -117,8 +118,8 @@ public class ProfileHandler {
 		JsonObject librariesObject = launcherMeta.get("libraries").getAsJsonObject();
 		// Build the libraries array with the existing libs + loader and intermediary
 		JsonArray libraries = (JsonArray) librariesObject.get("common");
-		String loaderMaven = loader.equals("fabric-loader-1.8.9") ? LoaderMeta.LEGACY_MAVEN_URL : LoaderMeta.MAVEN_URL;
-		libraries.add(getLibrary(info.getIntermediary().getMaven(), LoaderMeta.LEGACY_MAVEN_URL));
+		String loaderMaven = loader.equals("fabric-loader-1.8.9") ? LoaderMeta.REWOVEN_MAVEN_URL : LoaderMeta.MAVEN_URL;
+		libraries.add(getLibrary(info.getIntermediary().getMaven(), LoaderMeta.REWOVEN_MAVEN_URL));
 		libraries.add(getLibrary(info.getLoader().getMaven(), loaderMaven));
 
 		if (librariesObject.has(side)) {

@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Legacy Fabric/Quilt
+ * Copyright (c) 2022 RewovenMC
+ * Copyright (c) 2021 Legacy Fabric
  * Copyright (c) 2019 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +37,7 @@ public class LoaderMeta {
 
 	public static final File BASE_DIR = new File("metadata");
 	public static final String MAVEN_URL = "https://maven.fabricmc.net/";
-	public static final String LEGACY_MAVEN_URL = VersionDatabase.MAVEN_URL;
+	public static final String REWOVEN_MAVEN_URL = VersionDatabase.MAVEN_URL;
 
 	public static JsonObject getMeta(LoaderInfoBase loaderInfo){
 		String loaderMaven = loaderInfo.getLoader().getMaven();
@@ -47,7 +48,7 @@ public class LoaderMeta {
 		File launcherMetaFile = new File(BASE_DIR, path + "/" + filename);
 		if(!launcherMetaFile.exists()){
 			try {
-				String maven = loaderInfo.getLoader().getName().equals("fabric-loader-1.8.9") ? LEGACY_MAVEN_URL : MAVEN_URL;
+				String maven = loaderInfo.getLoader().getName().equals("fabric-loader-1.8.9") ? REWOVEN_MAVEN_URL : MAVEN_URL;
 				String url = String.format("%s%s/%s", maven, path, filename);
 				System.out.println("Downloading " + url);
 				FileUtils.copyURLToFile(new URL(url), launcherMetaFile);

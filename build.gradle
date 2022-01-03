@@ -1,45 +1,38 @@
-//file:noinspection GroovyAssignabilityCheck
-//file:noinspection GroovyAccessibility
+
 plugins {
-    id 'java'
-	id 'org.cadixdev.licenser' version '0.5.0'
+	id 'java'
+	id 'maven-publish'
+	id 'org.cadixdev.licenser' version '0.6.1'
 }
 
 group 'net.fabricmc'
-version '1.2.4'
+version '1.4.2'
+
+def ENV = System.getenv()
+version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = "legacy-meta"
+archivesBaseName = "fabric-meta"
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-	implementation("com.google.code.gson:gson:2.8.6")
-	implementation("io.javalin:javalin:3.13.3")
-	implementation("org.slf4j:slf4j-simple:1.7.30")
-	implementation("commons-io:commons-io:2.8.0")
+	implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.8'
+	implementation group: 'io.javalin', name: 'javalin', version: '3.13.11'
+	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.32'
+	implementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
 }
-
-task generateSources(type: Copy) {
-	from 'src/replaceme/java/net/fabricmc/meta/web/models/MetaServerInfo.java'
-	into "$buildDir/generated-src"
-	filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
-			'VERSION': project.version
-	])
-}
-// the following lines are important to wire the task in with the compileJava task
-compileJava.source "$buildDir/generated-src"
-compileJava.dependsOn generateSources
 
 jar {
 	manifest {
 		attributes "Main-Class": "net.fabricmc.meta.FabricMeta"
 	}
 	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -51,11 +44,43 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 license {
-	matching(includes: ['**/VersionDatabase.java', '**/LoaderMeta.java', '**/MavenBuildVersion.java',
-						'**/MavenUrlVersion.java', '**/ProfileHandler.java', '**/EndpointsV1.java',
-						'**/EndpointsV2.java']) {
-		header = file('LFQ-HEADER')
-	}
 	header file('HEADER')
 	include '**/*.java'
 }
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId project.group
+			artifactId project.archivesBaseName
+			version project.version
+
+			artifact jar
+		}
+	}
+	repositories {
+		if (ENV.MAVEN_URL) {
+			maven {
+				url ENV.MAVEN_URL
+				credentials {
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
+				}
+			}
+		}
+	}
+}
+
+// A task to ensure that the version being released has not already been released.
+task checkVersion {
+	doFirst {
+		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/fabric-meta/maven-metadata.xml").text
+		def metadata = new XmlSlurper().parseText(xml)
+		def versions = metadata.versioning.versions.version*.text();
+		if (versions.contains(version)) {
+			throw new RuntimeException("${version} has already been released!")
+		}
+	}
+}
+
+publish.mustRunAfter checkVersion
